@@ -30,7 +30,7 @@ struct BasicView: View {
                     .font(.headline)
                     .foregroundColor(item.color)
                 
-                Text("anh.tranle@ncc.asia")
+                Text("anh.tranle@codelight.co")
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }

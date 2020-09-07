@@ -12,14 +12,13 @@ import SwiftUI
 struct SlideOverCard<Content: View> : View {
     @GestureState private var dragState = DragState.inactive
     @State var position = CardPosition.bottom
-    
     var content: () -> Content
     var body: some View {
         let drag = DragGesture()
             .updating($dragState) { drag, state, transaction in
                 state = .dragging(translation: drag.translation)
-            }
-            .onEnded(onDragEnded)
+        }
+        .onEnded(onDragEnded)
         
         return Group {
             Handle()
@@ -28,19 +27,19 @@ struct SlideOverCard<Content: View> : View {
         .frame(width:UIScreen.main.bounds.width , height: UIScreen.main.bounds.height)
         .background(Color.red)
         .shadow(color: Color(.sRGBLinear, white: 0, opacity: 0.13), radius: 10.0)
-        .offset(y: self.position.rawValue + self.dragState.translation.height)
-        .animation(self.dragState.isDragging ? nil : .interpolatingSpring(stiffness: 300.0, damping: 30.0, initialVelocity: 10.0))
+        .offset(y: self.position.value() + self.dragState.translation.height)
+        .animation(self.dragState.isDragging ? nil : .interpolatingSpring(stiffness: 200.0, damping: 30.0, initialVelocity: 1.0))
         .gesture(drag)
     }
     
     private func onDragEnded(drag: DragGesture.Value) {
         let verticalDirection = drag.predictedEndLocation.y - drag.location.y
-        let cardTopEdgeLocation = self.position.rawValue + drag.translation.height
+        let cardTopEdgeLocation = self.position.value() + drag.translation.height
         let positionAbove: CardPosition
         let positionBelow: CardPosition
         let closestPosition: CardPosition
         
-        if cardTopEdgeLocation <= CardPosition.middle.rawValue {
+        if cardTopEdgeLocation <= CardPosition.middle.value() {
             positionAbove = .top
             positionBelow = .middle
         } else {
@@ -48,7 +47,7 @@ struct SlideOverCard<Content: View> : View {
             positionBelow = .bottom
         }
         
-        if (cardTopEdgeLocation - positionAbove.rawValue) < (positionBelow.rawValue - cardTopEdgeLocation) {
+        if (cardTopEdgeLocation - positionAbove.value()) < (positionBelow.value() - cardTopEdgeLocation) {
             closestPosition = positionAbove
         } else {
             closestPosition = positionBelow
@@ -62,12 +61,25 @@ struct SlideOverCard<Content: View> : View {
             self.position = closestPosition
         }
     }
+    
 }
 
-enum CardPosition: CGFloat {
-    case top = 100
-    case middle = 500
-    case bottom = 800
+enum CardPosition  {
+    case top
+    case middle
+    case bottom
+    
+    func value() -> CGFloat {
+        switch self {
+        case .top:
+            return 100
+        case .middle:
+            return UIScreen.main.bounds.height/2
+        case .bottom:
+            return (UIScreen.main.bounds.height - 15)
+        }
+    }
+    
 }
 
 enum DragState {
